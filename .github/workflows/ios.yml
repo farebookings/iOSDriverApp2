@@ -23,4 +23,27 @@ jobs:
           -project iOSDriverApp.xcodeproj \
           -scheme iOSDriverApp \
           -destination 'platform=iOS Simulator,name=iPhone 16' \
+          -derivedDataPath ./DerivedData \
           CODE_SIGNING_ALLOWED=NO
+
+    - name: Find and prepare app bundle
+      run: |
+        # Buscar el archivo .app generado
+        APP_PATH=$(find ./DerivedData -name "*.app" -type d | head -1)
+        echo "App found at: $APP_PATH"
+        
+        # Crear carpeta para el artefacto
+        mkdir -p output
+        
+        # Copiar la app a la carpeta output
+        cp -R "$APP_PATH" output/
+        
+        # Comprimir para facilitar la descarga
+        cd output && zip -r iOSDriverApp.zip *.app
+
+    - name: Upload app artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: iOSDriverApp
+        path: output/iOSDriverApp.zip
+        retention-days: 7  # Los artefactos se guardan por 7 días
